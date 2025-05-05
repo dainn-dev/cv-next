@@ -54,10 +54,10 @@ export default function Facts() {
         const updateCounter = () => {
           current += step
           if (current < target) {
-            counter.textContent = Math.ceil(current).toString()
+            counter.textContent = Math.ceil(current).toString() + "+"
             requestAnimationFrame(updateCounter)
           } else {
-            counter.textContent = target.toString()
+            counter.textContent = target.toString() + "+"
           }
         }
 

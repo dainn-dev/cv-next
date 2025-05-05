@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash2, Plus } from "lucide-react"
+import { Trash2, Plus, ChevronDown, ChevronUp } from "lucide-react"
 import { savePortfolioItemsClient } from "@/lib/firebase/client"
 import { useToast } from "@/hooks/use-toast"
 import { subscribeToPortfolioUpdates } from "@/lib/firebase/client"
@@ -50,6 +50,7 @@ export default function PortfolioItemsForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDataLoading, setIsDataLoading] = useState(true)
   const { toast } = useToast()
+  const [expanded, setExpanded] = useState<boolean[]>([])
 
   const form = useForm<PortfolioFormValues>({
     resolver: zodResolver(portfolioFormSchema),
@@ -82,6 +83,16 @@ export default function PortfolioItemsForm() {
     control: form.control,
   })
 
+  // Sync expanded state with fields
+  useEffect(() => {
+    setExpanded((prev) => {
+      if (fields.length !== prev.length) {
+        return Array(fields.length).fill(false)
+      }
+      return prev
+    })
+  }, [fields.length])
+
   async function onSubmit(data: PortfolioFormValues) {
     setIsLoading(true)
     try {
@@ -99,6 +110,14 @@ export default function PortfolioItemsForm() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (isDataLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <img src="/loading.gif" alt="Loading..." className="h-12 w-12" />
+      </div>
+    );
   }
 
   return (
@@ -140,109 +159,120 @@ export default function PortfolioItemsForm() {
         <div className="space-y-4">
           {fields.map((field, index) => (
             <Card key={field.id} className="overflow-hidden">
-              <CardHeader className="bg-gray-50 py-4">
-                <CardTitle className="text-lg flex justify-between items-center">
+              <CardHeader className="bg-gray-50 py-4 flex flex-row items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
                   <span>Portfolio Item {index + 1}</span>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => remove(index)}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => setExpanded(exp => exp.map((v, i) => i === index ? !v : v))}
+                    className="ml-2"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    {expanded[index] ? <ChevronUp /> : <ChevronDown />}
                   </Button>
                 </CardTitle>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => remove(index)}
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </CardHeader>
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.title`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Project Title" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.category`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+              {expanded[index] && (
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.title`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
+                            <Input placeholder="Project Title" {...field} />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="app">App</SelectItem>
-                            <SelectItem value="web">Web</SelectItem>
-                            <SelectItem value="card">Card</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.imageUrl`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Image URL</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://example.com/image.jpg" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.detailsUrl`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Details URL (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://example.com/details" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.category`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a category" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="app">App</SelectItem>
+                              <SelectItem value="web">Web</SelectItem>
+                              <SelectItem value="card">Card</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.imageUrl`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Image URL</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://example.com/image.jpg" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.detailsUrl`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Details URL (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://example.com/details" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              )}
             </Card>
           ))}
         </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            append({
-              title: "",
-              category: "web",
-              imageUrl: "https://placeholder.com/600x400",
-            })
-          }
-          className="flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Add Portfolio Item
-        </Button>
-
-        <Button type="submit" disabled={isLoading} className="bg-[#149ddd] hover:bg-[#37b3ed]">
-          {isLoading ? "Saving..." : "Save Changes"}
-        </Button>
+        <div className="flex items-center gap-4 mt-8">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              append({
+                title: "",
+                category: "web",
+                imageUrl: "https://placeholder.com/600x400",
+              })
+            }
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Portfolio Item
+          </Button>
+          <Button type="submit" disabled={isLoading} className="bg-[#149ddd] hover:bg-[#37b3ed]">
+            {isLoading ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
       </form>
     </Form>
   )

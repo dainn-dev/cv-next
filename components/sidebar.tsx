@@ -18,14 +18,28 @@ import {
 } from "lucide-react"
 import { subscribeToProfileUpdates } from "@/lib/firebase/client"
 
+type Social = { platform: string; url: string; icon?: string };
+
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const [activeSection, setActiveSection] = useState("hero")
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<{
+    name: string;
+    image: string;
+    socials: Social[];
+  }>({
     name: "Your Name",
     image: "",
+    socials: [],
   })
   const [loading, setLoading] = useState(true)
+
+  const iconMap = {
+    Twitter,
+    Facebook,
+    Instagram,
+    Linkedin,
+  }
 
   useEffect(() => {
     const unsubscribe = subscribeToProfileUpdates((profile) => {
@@ -33,6 +47,7 @@ export default function Sidebar() {
         setProfileData({
           name: profile.name || "Your Name",
           image: profile.image || "",
+          socials: profile.socials || [],
         })
       }
       setLoading(false)
@@ -100,18 +115,37 @@ export default function Sidebar() {
               </>
             )}
             <div className="social-links flex justify-center mt-4 space-x-2">
-              <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
-                <Twitter className="h-4 w-4" />
-              </a>
-              <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
-                <Facebook className="h-4 w-4" />
-              </a>
-              <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
-                <Instagram className="h-4 w-4" />
-              </a>
-              <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
-                <Linkedin className="h-4 w-4" />
-              </a>
+              {profileData.socials && profileData.socials.length > 0 ? (
+                profileData.socials.map((social: Social, idx) => {
+                  const Icon = iconMap[social.icon as keyof typeof iconMap] || iconMap[social.platform as keyof typeof iconMap] || Twitter
+                  return (
+                    <a
+                      key={idx}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors"
+                    >
+                      <Icon className="h-4 w-4" />
+                    </a>
+                  )
+                })
+              ) : (
+                <>
+                  <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
+                    <Twitter className="h-4 w-4" />
+                  </a>
+                  <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                  <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                  <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
+                    <Linkedin className="h-4 w-4" />
+                  </a>
+                </>
+              )}
             </div>
           </div>
 

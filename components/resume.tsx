@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { getProfile } from "@/lib/actions"
-import { subscribeToEducationUpdates, subscribeToExperienceUpdates, subscribeToProfileUpdates } from "@/lib/firebase/client"
+import { subscribeToEducationUpdates, subscribeToExperienceUpdates, subscribeToProfileUpdates, subscribeToCertificatesUpdates } from "@/lib/firebase/client"
 
 export default function Resume() {
   const [profile, setProfile] = useState({
@@ -15,11 +15,11 @@ export default function Resume() {
   })
   const [education, setEducation] = useState<any[]>([])
   const [experience, setExperience] = useState<any[]>([])
+  const [certificates, setCertificates] = useState<any[]>([])
   const [profileLoading, setProfileLoading] = useState(true)
   const [educationLoading, setEducationLoading] = useState(true)
   const [experienceLoading, setExperienceLoading] = useState(true)
   const [certificateLoading, setCertificateLoading] = useState(true)
-  const [certificates, setCertificates] = useState<any[]>([])
 
   useEffect(() => {
     setProfileLoading(true)
@@ -55,12 +55,11 @@ export default function Resume() {
 
   useEffect(() => {
     setCertificateLoading(true)
-    // Placeholder for subscribeToCertificatesUpdates
-    // Replace with actual Firestore subscription when implemented
-    setTimeout(() => {
-      setCertificates([])
+    const unsubCert = subscribeToCertificatesUpdates((data) => {
+      setCertificates(data)
       setCertificateLoading(false)
-    }, 500)
+    })
+    return () => unsubCert()
   }, [])
 
   useEffect(() => {

@@ -47,7 +47,7 @@ export async function updateProfileInFirebase(profileData: any) {
       await profileRef.set(profileData)
     } else {
       // Update the document if it exists
-      await profileRef.set(profileData, { merge: true })
+    await profileRef.set(profileData, { merge: true })
     }
     
     return { success: true }

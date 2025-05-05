@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash2, Plus, Loader2 } from "lucide-react"
+import { Trash2, Plus, Loader2, ChevronDown, ChevronUp } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { saveSkillsClient } from "@/lib/firebase/client"
 import { useToast } from "@/hooks/use-toast"
@@ -72,6 +72,17 @@ export default function SkillsForm() {
     control: form.control,
   })
 
+  const [expanded, setExpanded] = useState<boolean[]>([])
+
+  useEffect(() => {
+    setExpanded((prev) => {
+      if (technicalFields.length !== prev.length) {
+        return Array(technicalFields.length).fill(false)
+      }
+      return prev
+    })
+  }, [technicalFields.length])
+
   async function onSubmit(data: SkillsFormValues) {
     setIsLoading(true)
     try {
@@ -79,12 +90,13 @@ export default function SkillsForm() {
       toast({
         title: "Skills updated",
         description: "Your skills have been updated successfully.",
+        variant: "success"
       })
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to update skills. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       })
     } finally {
       setIsLoading(false)
@@ -93,41 +105,8 @@ export default function SkillsForm() {
 
   if (isDataLoading) {
     return (
-      <div className="space-y-8">
-        <div className="flex items-center justify-center space-x-2 text-gray-500">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading skills data...</span>
-        </div>
-        <div className="space-y-4">
-          <Card className="animate-pulse">
-            <CardHeader>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-20 bg-gray-200 rounded"></div>
-            </CardContent>
-          </Card>
-          <div className="grid grid-cols-1 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <img src="/loading.gif" alt="Loading..." className="h-12 w-12" />
       </div>
     )
   }
@@ -180,50 +159,61 @@ export default function SkillsForm() {
           <CardContent className="space-y-4">
             {technicalFields.map((field, index) => (
               <Card key={field.id}>
-                <CardHeader className="bg-gray-50 py-4">
-                  <CardTitle className="text-lg flex justify-between items-center">
+                <CardHeader className="bg-gray-50 py-4 flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
                     <span>Technical Skill {index + 1}</span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeTechnical(index)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => setExpanded(exp => exp.map((v, i) => i === index ? !v : v))}
+                      className="ml-2"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {expanded[index] ? <ChevronUp /> : <ChevronDown />}
                     </Button>
                   </CardTitle>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeTechnical(index)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 gap-6">
-                    <FormField
-                      control={form.control}
-                      name={`technicalSkills.${index}.category`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Category</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Languages & Frameworks" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`technicalSkills.${index}.details`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Details</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="e.g., C#, ASP.NET Core, .NET 6/7, ..." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
+                {expanded[index] && (
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-1 gap-6">
+                      <FormField
+                        control={form.control}
+                        name={`technicalSkills.${index}.category`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Languages & Frameworks" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`technicalSkills.${index}.details`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Details</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="e.g., C#, ASP.NET Core, .NET 6/7, ..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                )}
               </Card>
             ))}
             <Button

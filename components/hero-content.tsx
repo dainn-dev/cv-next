@@ -72,12 +72,7 @@ export default function HeroContent() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="container mx-auto px-4 text-center relative z-10" data-aos="fade-in">
-          <div className="animate-pulse">
-            <div className="h-12 bg-gray-200 rounded w-1/2 mx-auto mb-4"></div>
-            <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto"></div>
-          </div>
-        </div>
+        <img src="/loading.gif" alt="Loading..." className="h-16 w-16" />
       </div>
     )
   }

@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash2, Plus, Loader2 } from "lucide-react"
+import { Trash2, Plus, Loader2, ChevronDown, ChevronUp } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
-// import { saveServicesClient, subscribeToServicesUpdates } from "@/lib/firebase/client"
+import { saveServicesClient, subscribeToServicesUpdates } from "@/lib/firebase/client"
+import { useToast } from "@/hooks/use-toast"
 
 const serviceSchema = z.object({
   id: z.string().optional(),
@@ -34,6 +35,8 @@ type ServicesFormValues = z.infer<typeof servicesFormSchema>
 export default function ServicesForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDataLoading, setIsDataLoading] = useState(true)
+  const [expanded, setExpanded] = useState<boolean[]>([])
+  const { toast } = useToast()
 
   const form = useForm<ServicesFormValues>({
     resolver: zodResolver(servicesFormSchema),
@@ -53,51 +56,49 @@ export default function ServicesForm() {
 
   useEffect(() => {
     setIsDataLoading(true)
-    // Placeholder for Firestore sync
-    setTimeout(() => {
+    const unsub = subscribeToServicesUpdates((data) => {
       form.reset({
-        intro: {
-          title: "Services",
-          description: "Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.",
-        },
-        services: [],
+        intro: data.intro || form.getValues("intro"),
+        services: data.services || [],
       })
       setIsDataLoading(false)
-    }, 500)
-    // Uncomment and implement Firestore sync:
-    // const unsub = subscribeToServicesUpdates((data) => {
-    //   form.reset({
-    //     intro: data.intro || form.getValues("intro"),
-    //     services: data.services || [],
-    //   })
-    //   setIsDataLoading(false)
-    // })
-    // return () => unsub()
+    })
+    return () => unsub()
   }, [form])
+
+  useEffect(() => {
+    setExpanded((prev) => {
+      if (fields.length !== prev.length) {
+        return Array(fields.length).fill(false)
+      }
+      return prev
+    })
+  }, [fields.length])
 
   async function onSubmit(data: ServicesFormValues) {
     setIsLoading(true)
-    // await saveServicesClient(data)
-    setTimeout(() => setIsLoading(false), 500)
+    try {
+      await saveServicesClient(data)
+      toast({
+        title: "Services updated",
+        description: "Your services have been updated successfully.",
+        variant: "success"
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update services. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (isDataLoading) {
     return (
-      <div className="space-y-8">
-        <div className="flex items-center justify-center space-x-2 text-gray-500">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading services...</span>
-        </div>
-        <div className="space-y-4">
-          <Card className="animate-pulse">
-            <CardHeader>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-20 bg-gray-200 rounded"></div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <img src="/loading.gif" alt="Loading..." className="h-12 w-12" />
       </div>
     )
   }
@@ -145,87 +146,100 @@ export default function ServicesForm() {
           <CardContent className="space-y-4">
             {fields.map((field, index) => (
               <Card key={field.id}>
-                <CardHeader className="bg-gray-50 py-4">
-                  <CardTitle className="text-lg flex justify-between items-center">
+                <CardHeader className="bg-gray-50 py-4 flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
                     <span>Service {index + 1}</span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => remove(index)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => setExpanded(exp => exp.map((v, i) => i === index ? !v : v))}
+                      className="ml-2"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {expanded[index] ? <ChevronUp /> : <ChevronDown />}
                     </Button>
                   </CardTitle>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => remove(index)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name={`services.${index}.icon`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Icon Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Briefcase, ClipboardList, BarChart" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`services.${index}.title`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Title</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Service Title" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`services.${index}.description`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Service description" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
+                {expanded[index] && (
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <FormField
+                        control={form.control}
+                        name={`services.${index}.icon`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Icon Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Briefcase, ClipboardList, BarChart" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`services.${index}.title`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Service Title" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`services.${index}.description`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Service description" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                )}
               </Card>
             ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => append({ icon: "", title: "", description: "" })}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Service
-            </Button>
+            <div className="flex items-center gap-4 mt-8">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => append({ icon: "", title: "", description: "" })}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Service
+              </Button>
+              <Button type="submit" disabled={isLoading} className="bg-[#149ddd] hover:bg-[#37b3ed]">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
-        <Button type="submit" disabled={isLoading} className="bg-[#149ddd] hover:bg-[#37b3ed]">
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            "Save Changes"
-          )}
-        </Button>
       </form>
     </Form>
   )

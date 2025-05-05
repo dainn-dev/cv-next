@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash2, Plus, Loader2 } from "lucide-react"
+import { Trash2, Plus, Loader2, ChevronDown, ChevronUp } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { subscribeToFactsUpdates, saveFactsClient } from "@/lib/firebase/client"
 import { Textarea } from "@/components/ui/textarea"
@@ -53,6 +53,7 @@ export default function FactsForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDataLoading, setIsDataLoading] = useState(true)
   const { toast } = useToast()
+  const [expanded, setExpanded] = useState<boolean[]>([])
 
   const form = useForm<FactsFormValues>({
     resolver: zodResolver(factsFormSchema),
@@ -85,6 +86,16 @@ export default function FactsForm() {
     control: form.control,
   })
 
+  // Sync expanded state with fields
+  useEffect(() => {
+    setExpanded((prev) => {
+      if (fields.length !== prev.length) {
+        return Array(fields.length).fill(false)
+      }
+      return prev
+    })
+  }, [fields.length])
+
   async function onSubmit(data: FactsFormValues) {
     setIsLoading(true)
     try {
@@ -92,6 +103,7 @@ export default function FactsForm() {
       toast({
         title: "Facts updated",
         description: "Your facts have been updated successfully.",
+        variant: "success"
       })
     } catch (error) {
       toast({
@@ -106,49 +118,8 @@ export default function FactsForm() {
 
   if (isDataLoading) {
     return (
-      <div className="space-y-8">
-        <div className="flex items-center justify-center space-x-2 text-gray-500">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading facts data...</span>
-        </div>
-        <div className="space-y-4">
-          <Card className="animate-pulse">
-            <CardHeader>
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-20 bg-gray-200 rounded"></div>
-            </CardContent>
-          </Card>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <img src="/loading.gif" alt="Loading..." className="h-12 w-12" />
       </div>
     )
   }
@@ -197,81 +168,92 @@ export default function FactsForm() {
         <div className="space-y-4">
           {fields.map((field, index) => (
             <Card key={field.id}>
-              <CardHeader className="bg-gray-50 py-4">
-                <CardTitle className="text-lg flex justify-between items-center">
+              <CardHeader className="bg-gray-50 py-4 flex flex-row items-center justify-between">
+                <CardTitle className="text-lg flex items-center gap-2">
                   <span>Fact {index + 1}</span>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => remove(index)}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => setExpanded(exp => exp.map((v, i) => i === index ? !v : v))}
+                    className="ml-2"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    {expanded[index] ? <ChevronUp /> : <ChevronDown />}
                   </Button>
                 </CardTitle>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => remove(index)}
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </CardHeader>
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name={`facts.${index}.icon`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Icon Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Smile, FileText, Headphones" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`facts.${index}.count`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Count</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="e.g., 232"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`facts.${index}.title`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Happy Clients" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`facts.${index}.description`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., consequuntur quae" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
+              {expanded[index] && (
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name={`facts.${index}.icon`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Icon Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., Smile, FileText, Headphones" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`facts.${index}.count`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Count</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="e.g., 232"
+                              {...field}
+                              onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`facts.${index}.title`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., Happy Clients" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`facts.${index}.description`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., consequuntur quae" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              )}
             </Card>
           ))}
         </div>

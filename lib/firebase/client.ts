@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app"
-import { getFirestore, onSnapshot, doc, collection, setDoc, writeBatch } from "firebase/firestore"
+import { getFirestore, onSnapshot, doc, collection, setDoc, writeBatch, getDocs, query, orderBy } from "firebase/firestore"
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -70,6 +70,21 @@ interface PortfolioData {
   items: PortfolioItem[]
 }
 
+interface Testimonial {
+  name: string
+  position: string
+  text: string
+  imageUrl: string
+}
+
+interface TestimonialsData {
+  intro: {
+    title: string
+    description: string
+  }
+  testimonials: Testimonial[]
+}
+
 // Subscribe to profile updates
 export function subscribeToProfileUpdates(callback: (data: any) => void) {
   const profileRef = doc(db, COLLECTIONS.PROFILE, "main")
@@ -127,10 +142,20 @@ export function subscribeToSkillsUpdates(callback: (data: SkillsData) => void) {
 }
 
 // Subscribe to testimonials updates
-export function subscribeToTestimonialsUpdates(callback: (data: any[]) => void) {
-  const testimonialsRef = collection(db, COLLECTIONS.TESTIMONIALS)
-  return onSnapshot(testimonialsRef, (snapshot) => {
-    callback(snapshot.docs.map(doc => doc.data()))
+export function subscribeToTestimonialsUpdates(callback: (data: TestimonialsData) => void) {
+  const testimonialsRef = doc(db, COLLECTIONS.TESTIMONIALS, "data")
+  return onSnapshot(testimonialsRef, (doc) => {
+    if (doc.exists()) {
+      callback(doc.data() as TestimonialsData)
+    } else {
+      callback({
+        intro: {
+          title: "Testimonials",
+          description: "Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.",
+        },
+        testimonials: [],
+      })
+    }
   })
 }
 
@@ -171,14 +196,9 @@ export async function saveSkillsClient(data: SkillsData) {
   }
 }
 
-export async function saveTestimonialsClient(testimonials: any[]) {
-  const batch = writeBatch(db)
-  const colRef = collection(db, COLLECTIONS.TESTIMONIALS)
-  testimonials.forEach((testimonial, idx) => {
-    const docRef = doc(colRef, `testimonial-${idx + 1}`)
-    batch.set(docRef, { ...testimonial, order: idx })
-  })
-  await batch.commit()
+export async function saveTestimonialsClient(data: TestimonialsData) {
+  const ref = doc(db, COLLECTIONS.TESTIMONIALS, "data")
+  await setDoc(ref, data)
 }
 
 // Save all education entries (overwrite)
@@ -220,6 +240,63 @@ export function subscribeToFactsUpdates(callback: (data: FactsData) => void) {
           description: "Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.",
         },
         facts: [],
+      })
+    }
+  })
+}
+
+export async function saveCertificatesClient(certificates: any[]) {
+  const certificatesRef = collection(db, "certificates")
+  const batch = writeBatch(db)
+
+  // Delete existing certificates
+  const existingDocs = await getDocs(certificatesRef)
+  existingDocs.forEach((doc) => {
+    batch.delete(doc.ref)
+  })
+
+  // Add new certificates
+  certificates.forEach((cert) => {
+    const newDocRef = doc(certificatesRef)
+    batch.set(newDocRef, {
+      ...cert,
+      id: newDocRef.id,
+    })
+  })
+
+  await batch.commit()
+}
+
+export function subscribeToCertificatesUpdates(callback: (data: any[]) => void) {
+  const certificatesRef = collection(db, "certificates")
+  const q = query(certificatesRef, orderBy("date", "desc"))
+
+  return onSnapshot(q, (snapshot) => {
+    const certificates = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }))
+    callback(certificates)
+  })
+}
+
+export async function saveServicesClient(data: { intro: { title: string; description: string }; services: any[] }) {
+  const servicesRef = doc(db, "services", "data")
+  await setDoc(servicesRef, data)
+}
+
+export function subscribeToServicesUpdates(callback: (data: { intro: { title: string; description: string }; services: any[] }) => void) {
+  const servicesRef = doc(db, "services", "data")
+  return onSnapshot(servicesRef, (doc) => {
+    if (doc.exists()) {
+      callback(doc.data() as { intro: { title: string; description: string }; services: any[] })
+    } else {
+      callback({
+        intro: {
+          title: "Services",
+          description: "Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.",
+        },
+        services: [],
       })
     }
   })
