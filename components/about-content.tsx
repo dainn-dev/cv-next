@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { ChevronRight } from "lucide-react"
 import { useEffect, useState } from "react"
-import { getProfile } from "@/lib/actions"
+import { subscribeToProfileUpdates } from "@/lib/firebase/client"
 
 export default function AboutContent() {
   const [profileData, setProfileData] = useState({
@@ -19,21 +19,52 @@ export default function AboutContent() {
     website: "www.example.com",
     degree: "Master",
     freelance: "Available",
+    image: "",
   })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function loadProfile() {
-      const profile = await getProfile()
-      if (profile) {
+    const unsubscribe = subscribeToProfileUpdates((data) => {
+      if (data) {
         setProfileData((prev) => ({
           ...prev,
-          ...profile,
+          ...data,
         }))
       }
-    }
-
-    loadProfile()
+      setLoading(false)
+    })
+    return () => unsubscribe()
   }, [])
+
+  if (loading) {
+    return (
+      <div className="animate-pulse">
+        <div className="h-4 bg-gray-200 rounded w-3/4 mb-8"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-4">
+            <div className="bg-gray-200 rounded-lg h-[600px]"></div>
+          </div>
+          <div className="lg:col-span-8 pt-4 lg:pt-0">
+            <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4">
+              <div className="space-y-3">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-4 bg-gray-200 rounded w-3/4"></div>
+                ))}
+              </div>
+              <div className="space-y-3">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-4 bg-gray-200 rounded w-3/4"></div>
+                ))}
+              </div>
+            </div>
+            <div className="h-4 bg-gray-200 rounded w-full mt-6"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -42,7 +73,7 @@ export default function AboutContent() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-4" data-aos="fade-right">
           <Image
-            src="/placeholder.svg?height=600&width=600"
+            src={profileData.image || "/placeholder.svg?height=600&width=600"}
             alt="Profile"
             width={600}
             height={600}

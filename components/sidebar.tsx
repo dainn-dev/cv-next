@@ -16,22 +16,29 @@ import {
   Mail,
   Menu,
 } from "lucide-react"
-import { getProfile } from "@/lib/actions"
+import { subscribeToProfileUpdates } from "@/lib/firebase/client"
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const [activeSection, setActiveSection] = useState("hero")
-  const [profileName, setProfileName] = useState("Your Name")
+  const [profileData, setProfileData] = useState({
+    name: "Your Name",
+    image: "",
+  })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function loadProfile() {
-      const profile = await getProfile()
-      if (profile && profile.name) {
-        setProfileName(profile.name)
+    const unsubscribe = subscribeToProfileUpdates((profile) => {
+      if (profile) {
+        setProfileData({
+          name: profile.name || "Your Name",
+          image: profile.image || "",
+        })
       }
-    }
+      setLoading(false)
+    })
 
-    loadProfile()
+    return () => unsubscribe()
   }, [])
 
   useEffect(() => {
@@ -71,18 +78,27 @@ export default function Sidebar() {
       >
         <div className="flex flex-col h-full overflow-y-auto">
           <div className="profile p-6 text-center">
-            <Image
-              src="/placeholder.svg?height=120&width=120"
-              alt="Profile"
-              width={120}
-              height={120}
-              className="mx-auto rounded-full border-8 border-[#2c2f3f]"
-            />
-            <h1 className="text-2xl font-semibold mt-4">
-              <Link href="/" className="text-white hover:text-[#149ddd]">
-                {profileName}
-              </Link>
-            </h1>
+            {loading ? (
+              <div className="animate-pulse">
+                <div className="mx-auto rounded-full border-8 border-[#2c2f3f] w-[120px] h-[120px] bg-gray-700"></div>
+                <div className="h-8 bg-gray-700 rounded w-3/4 mx-auto mt-4"></div>
+              </div>
+            ) : (
+              <>
+                <Image
+                  src={profileData.image || "/placeholder.svg?height=120&width=120"}
+                  alt="Profile"
+                  width={120}
+                  height={120}
+                  className="mx-auto rounded-full border-8 border-[#2c2f3f]"
+                />
+                <h1 className="text-2xl font-semibold mt-4">
+                  <Link href="/" className="text-white hover:text-[#149ddd]">
+                    {profileData.name}
+                  </Link>
+                </h1>
+              </>
+            )}
             <div className="social-links flex justify-center mt-4 space-x-2">
               <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
                 <Twitter className="h-4 w-4" />

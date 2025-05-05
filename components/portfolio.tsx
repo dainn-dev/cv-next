@@ -7,12 +7,19 @@ import { subscribeToPortfolioUpdates } from "@/lib/firebase/client"
 
 export default function Portfolio() {
   const [filter, setFilter] = useState("*")
-  const [portfolioItems, setPortfolioItems] = useState<any[]>([])
+  const [portfolioData, setPortfolioData] = useState({
+    intro: {
+      title: "Portfolio",
+      description:
+        "Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.",
+    },
+    items: [],
+  })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = subscribeToPortfolioUpdates((items) => {
-      setPortfolioItems(items)
+    const unsubscribe = subscribeToPortfolioUpdates((data) => {
+      setPortfolioData(data)
       setLoading(false)
     })
     return () => unsubscribe()
@@ -25,19 +32,17 @@ export default function Portfolio() {
     { id: 3, category: "app", image: "/placeholder.svg?height=400&width=600", title: "App 2" },
   ]
 
-  const items = loading ? defaultItems : portfolioItems
+  const items = loading ? defaultItems : portfolioData.items
   const filteredItems = filter === "*" ? items : items.filter((item) => item.category === filter)
+
+  const intro = portfolioData.intro
 
   return (
     <section id="portfolio" className="py-16 bg-[#f5f8fd]">
       <div className="container mx-auto px-4">
         <div className="section-title mb-12">
-          <h2>Portfolio</h2>
-          <p className="text-gray-600">
-            Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint
-            consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit
-            in iste officiis commodi quidem hic quas.
-          </p>
+          <h2>{intro.title}</h2>
+          <p className="text-gray-600">{intro.description}</p>
         </div>
 
         <div className="flex justify-center mb-8" data-aos="fade-up">
@@ -97,6 +102,7 @@ export default function Portfolio() {
                   </a>
                 </div>
               </div>
+              <div className="mt-2 text-center font-semibold text-[#173b6c]">{item.title}</div>
             </div>
           ))}
         </div>

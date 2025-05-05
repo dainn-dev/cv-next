@@ -13,6 +13,7 @@ export default function HeroContent() {
     title: "UI/UX Designer & Web Developer",
     image: "",
   })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Initial load
@@ -25,6 +26,7 @@ export default function HeroContent() {
           image: profile.image || "",
         })
       }
+      setLoading(false)
     }
 
     loadProfile()
@@ -38,6 +40,7 @@ export default function HeroContent() {
           image: profile.image || "",
         })
       }
+      setLoading(false)
     })
 
     return () => {
@@ -46,7 +49,7 @@ export default function HeroContent() {
   }, [])
 
   useEffect(() => {
-    if (typedRef.current) {
+    if (typedRef.current && !loading) {
       // Extract professional skills from title or use defaults
       const skills = profileData.title?.split("&").map((s) => s.trim()) || ["Designer", "Developer", "Freelancer"]
 
@@ -64,21 +67,29 @@ export default function HeroContent() {
         typed.current.destroy()
       }
     }
-  }, [profileData.title])
+  }, [profileData.title, loading])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="container mx-auto px-4 text-center relative z-10" data-aos="fade-in">
+          <div className="animate-pulse">
+            <div className="h-12 bg-gray-200 rounded w-1/2 mx-auto mb-4"></div>
+            <div className="h-8 bg-gray-200 rounded w-1/3 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="container mx-auto px-4 text-center relative z-10" data-aos="fade-in">
-      {profileData.image && (
-        <img
-          src={profileData.image}
-          alt={profileData.name}
-          className="mx-auto mb-4 rounded-full w-32 h-32 object-cover border-4 border-white shadow-lg"
-        />
-      )}
-      <h1 className="text-5xl font-bold text-white mb-4">{profileData.name}</h1>
-      <p className="text-white text-2xl">
-        I&apos;m <span ref={typedRef} className="text-[#149ddd]"></span>
-      </p>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="container mx-auto px-4 text-center relative z-10" data-aos="fade-in">
+        <h1 className="text-5xl font-bold text-white mb-4">{profileData.name}</h1>
+        <p className="text-white text-2xl">
+          I&apos;m <span ref={typedRef} className="text-[#149ddd]"></span>
+        </p>
+      </div>
     </div>
   )
 }

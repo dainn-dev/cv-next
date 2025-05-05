@@ -37,48 +37,29 @@ type TestimonialsFormValues = z.infer<typeof testimonialsFormSchema>
 
 export default function TestimonialsForm() {
   const [isLoading, setIsLoading] = useState(false)
+  const [isDataLoading, setIsDataLoading] = useState(true)
   const { toast } = useToast()
-  const [testimonials, setTestimonials] = useState<any[]>([])
-
-  useEffect(() => {
-    const unsubscribe = subscribeToTestimonialsUpdates(setTestimonials)
-    return () => unsubscribe()
-  }, [])
-
-  // Default values for the form
-  const defaultValues: Partial<TestimonialsFormValues> = {
-    testimonials: [
-      {
-        name: "Saul Goodman",
-        position: "CEO & Founder",
-        text: "Proin iaculis purus consequat sem cure digni ssim donec porttitora entum suscipit rhoncus. Accusantium quam, ultricies eget id, aliquam eget nibh et. Maecen aliquam, risus at semper.",
-        imageUrl: "https://placeholder.com/150x150",
-      },
-      {
-        name: "Sara Wilsson",
-        position: "Designer",
-        text: "Export tempor illum tamen malis malis eram quae irure esse labore quem cillum quid cillum eram malis quorum velit fore eram velit sunt aliqua noster fugiat irure amet legam anim culpa.",
-        imageUrl: "https://placeholder.com/150x150",
-      },
-      {
-        name: "Jena Karlis",
-        position: "Store Owner",
-        text: "Enim nisi quem export duis labore cillum quae magna enim sint quorum nulla quem veniam duis minim tempor labore quem eram duis noster aute amet eram fore quis sint minim.",
-        imageUrl: "https://placeholder.com/150x150",
-      },
-    ],
-  }
 
   const form = useForm<TestimonialsFormValues>({
     resolver: zodResolver(testimonialsFormSchema),
-    defaultValues,
+    defaultValues: {
+      testimonials: [],
+    },
   })
 
+  // Sync form with real-time Firestore data
   useEffect(() => {
-    if (testimonials && testimonials.length > 0) {
-      form.reset({ testimonials })
-    }
-  }, [testimonials, form])
+    setIsDataLoading(true)
+    const unsubscribe = subscribeToTestimonialsUpdates((data) => {
+      if (data) {
+        form.reset({
+          testimonials: data,
+        })
+      }
+      setIsDataLoading(false)
+    })
+    return () => unsubscribe()
+  }, [])
 
   const { fields, append, remove } = useFieldArray({
     name: "testimonials",

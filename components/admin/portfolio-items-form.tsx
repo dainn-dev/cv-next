@@ -13,6 +13,7 @@ import { Trash2, Plus } from "lucide-react"
 import { savePortfolioItemsClient } from "@/lib/firebase/client"
 import { useToast } from "@/hooks/use-toast"
 import { subscribeToPortfolioUpdates } from "@/lib/firebase/client"
+import { Textarea } from "@/components/ui/textarea"
 
 const portfolioItemSchema = z.object({
   id: z.string().optional(),
@@ -33,7 +34,13 @@ const portfolioItemSchema = z.object({
     .optional(),
 })
 
+const introSchema = z.object({
+  title: z.string().min(2, { message: "Title must be at least 2 characters." }),
+  description: z.string().min(10, { message: "Description must be at least 10 characters." }),
+})
+
 const portfolioFormSchema = z.object({
+  intro: introSchema,
   items: z.array(portfolioItemSchema),
 })
 
@@ -41,48 +48,34 @@ type PortfolioFormValues = z.infer<typeof portfolioFormSchema>
 
 export default function PortfolioItemsForm() {
   const [isLoading, setIsLoading] = useState(false)
+  const [isDataLoading, setIsDataLoading] = useState(true)
   const { toast } = useToast()
-  const [portfolioItems, setPortfolioItems] = useState<any[]>([])
-
-  useEffect(() => {
-    const unsubscribe = subscribeToPortfolioUpdates(setPortfolioItems)
-    return () => unsubscribe()
-  }, [])
 
   const form = useForm<PortfolioFormValues>({
     resolver: zodResolver(portfolioFormSchema),
     defaultValues: {
-      items: [
-        {
-          id: "1",
-          title: "App 1",
-          category: "app",
-          imageUrl: "https://placeholder.com/600x400",
-          detailsUrl: "https://example.com/portfolio/app1",
-        },
-        {
-          id: "2",
-          title: "Web 3",
-          category: "web",
-          imageUrl: "https://placeholder.com/600x400",
-          detailsUrl: "https://example.com/portfolio/web3",
-        },
-        {
-          id: "3",
-          title: "Card 2",
-          category: "card",
-          imageUrl: "https://placeholder.com/600x400",
-          detailsUrl: "https://example.com/portfolio/card2",
-        },
-      ],
+      intro: {
+        title: "Portfolio",
+        description: "Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.",
+      },
+      items: [],
     },
   })
 
+  // Sync form with real-time Firestore data
   useEffect(() => {
-    if (portfolioItems && portfolioItems.length > 0) {
-      form.reset({ items: portfolioItems })
-    }
-  }, [portfolioItems, form])
+    setIsDataLoading(true)
+    const unsubscribe = subscribeToPortfolioUpdates((data) => {
+      if (data) {
+        form.reset({
+          intro: data.intro || form.getValues("intro"),
+          items: data.items || data,
+        })
+      }
+      setIsDataLoading(false)
+    })
+    return () => unsubscribe()
+  }, [])
 
   const { fields, append, remove } = useFieldArray({
     name: "items",
@@ -92,7 +85,7 @@ export default function PortfolioItemsForm() {
   async function onSubmit(data: PortfolioFormValues) {
     setIsLoading(true)
     try {
-      await savePortfolioItemsClient(data.items)
+      await savePortfolioItemsClient(data)
       toast({
         title: "Portfolio updated",
         description: "Your portfolio items have been updated successfully.",
@@ -111,6 +104,39 @@ export default function PortfolioItemsForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Section Intro</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="intro.title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Portfolio" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="intro.description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Enter a description for the portfolio section" className="min-h-[100px]" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
         <div className="space-y-4">
           {fields.map((field, index) => (
             <Card key={field.id} className="overflow-hidden">

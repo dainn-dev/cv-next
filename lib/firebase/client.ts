@@ -22,6 +22,54 @@ const COLLECTIONS = {
   TESTIMONIALS: "testimonials",
 }
 
+interface Fact {
+  id?: string
+  icon: string
+  count: number
+  title: string
+  description: string
+}
+
+interface FactsData {
+  intro: {
+    title: string
+    description: string
+  }
+  facts: Fact[]
+}
+
+interface TechnicalSkill {
+  category: string
+  details: string
+}
+
+interface SkillsData {
+  intro: {
+    title: string
+    description: string
+  }
+  technicalSkills: TechnicalSkill[]
+  softSkills: string[]
+}
+
+interface PortfolioIntro {
+  title: string
+  description: string
+}
+
+interface PortfolioItem {
+  id?: string
+  title: string
+  category: string
+  imageUrl: string
+  detailsUrl?: string
+}
+
+interface PortfolioData {
+  intro: PortfolioIntro
+  items: PortfolioItem[]
+}
+
 // Subscribe to profile updates
 export function subscribeToProfileUpdates(callback: (data: any) => void) {
   const profileRef = doc(db, COLLECTIONS.PROFILE, "main")
@@ -41,18 +89,40 @@ export function subscribeToProfileUpdates(callback: (data: any) => void) {
 }
 
 // Subscribe to portfolio updates
-export function subscribeToPortfolioUpdates(callback: (data: any[]) => void) {
-  const portfolioRef = collection(db, COLLECTIONS.PORTFOLIO)
-  return onSnapshot(portfolioRef, (snapshot) => {
-    callback(snapshot.docs.map(doc => doc.data()))
+export function subscribeToPortfolioUpdates(callback: (data: PortfolioData) => void) {
+  const ref = doc(db, COLLECTIONS.PORTFOLIO, "data")
+  return onSnapshot(ref, (doc) => {
+    if (doc.exists()) {
+      callback(doc.data() as PortfolioData)
+    } else {
+      callback({
+        intro: {
+          title: "Portfolio",
+          description: "Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.",
+        },
+        items: [],
+      })
+    }
   })
 }
 
 // Subscribe to skills updates
-export function subscribeToSkillsUpdates(callback: (data: any[]) => void) {
-  const skillsRef = collection(db, COLLECTIONS.SKILLS)
-  return onSnapshot(skillsRef, (snapshot) => {
-    callback(snapshot.docs.map(doc => doc.data()))
+export function subscribeToSkillsUpdates(callback: (data: SkillsData) => void) {
+  const docRef = doc(db, "skills", "data")
+  return onSnapshot(docRef, (doc) => {
+    if (doc.exists()) {
+      const data = doc.data() as SkillsData
+      callback(data)
+    } else {
+      callback({
+        intro: {
+          title: "Skills",
+          description: "Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.",
+        },
+        technicalSkills: [],
+        softSkills: [],
+      })
+    }
   })
 }
 
@@ -86,24 +156,19 @@ export async function saveProfileClient(profile: any) {
   await setDoc(ref, profile, { merge: true })
 }
 
-export async function savePortfolioItemsClient(items: any[]) {
-  const batch = writeBatch(db)
-  const colRef = collection(db, COLLECTIONS.PORTFOLIO)
-  items.forEach((item) => {
-    const docRef = doc(colRef, item.id || Math.random().toString(36).slice(2))
-    batch.set(docRef, item)
-  })
-  await batch.commit()
+export async function savePortfolioItemsClient(data: PortfolioData) {
+  const ref = doc(db, COLLECTIONS.PORTFOLIO, "data")
+  await setDoc(ref, data)
 }
 
-export async function saveSkillsClient(skills: any[]) {
-  const batch = writeBatch(db)
-  const colRef = collection(db, COLLECTIONS.SKILLS)
-  skills.forEach((skill, idx) => {
-    const docRef = doc(colRef, `skill-${idx + 1}`)
-    batch.set(docRef, { ...skill, order: idx })
-  })
-  await batch.commit()
+export async function saveSkillsClient(data: SkillsData) {
+  try {
+    const docRef = doc(db, "skills", "data")
+    await setDoc(docRef, data)
+  } catch (error) {
+    console.error("Error saving skills:", error)
+    throw error
+  }
 }
 
 export async function saveTestimonialsClient(testimonials: any[]) {
@@ -136,6 +201,28 @@ export async function saveExperienceClient(entries: any[]) {
     batch.set(docRef, entry);
   });
   await batch.commit();
+}
+
+export async function saveFactsClient(data: FactsData) {
+  const factsRef = doc(db, "facts", "data")
+  await setDoc(factsRef, data)
+}
+
+export function subscribeToFactsUpdates(callback: (data: FactsData) => void) {
+  const factsRef = doc(db, "facts", "data")
+  return onSnapshot(factsRef, (doc) => {
+    if (doc.exists()) {
+      callback(doc.data() as FactsData)
+    } else {
+      callback({
+        intro: {
+          title: "Facts",
+          description: "Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.",
+        },
+        facts: [],
+      })
+    }
+  })
 }
 
 export { db, COLLECTIONS } 
