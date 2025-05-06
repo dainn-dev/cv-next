@@ -5,7 +5,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="flex flex-col justify-content-center items-center h-screen bg-[url('/placeholder.svg?height=1080&width=1920')] bg-cover bg-center bg-fixed relative"
+      className="flex flex-col justify-content-center items-center h-screen bg-[url('/background.jpg?height=1080&width=1920')] bg-cover bg-center bg-fixed relative"
     >
       <div className="absolute inset-0 bg-[#040b14]/70"></div>
       <Suspense fallback={<HeroLoading />}>

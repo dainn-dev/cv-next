@@ -101,7 +101,7 @@ export default function Sidebar() {
             ) : (
               <>
                 <Image
-                  src={profileData.image || "/placeholder.svg?height=120&width=120"}
+                  src={profileData.image || "/background.jpg?height=120&width=120"}
                   alt="Profile"
                   width={120}
                   height={120}

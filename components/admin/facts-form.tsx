@@ -8,10 +8,17 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trash2, Plus, Loader2, ChevronDown, ChevronUp } from "lucide-react"
+import { Trash2, Plus, Loader2, ChevronDown, ChevronUp, Smile, FileText, Headphones, User, Star, Heart, Camera, Coffee, Book, Code, Briefcase, Award, Check, Clock, Cloud, Download, Edit, Eye, Gift, Globe, Key, Lock, Mail, Map, Music, Phone, Search, Settings, Shield, ShoppingCart, Tag, Upload, Zap } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { subscribeToFactsUpdates, saveFactsClient } from "@/lib/firebase/client"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const factSchema = z.object({
   id: z.string().optional(),
@@ -48,6 +55,80 @@ interface Fact {
   title: string
   description: string
 }
+
+const iconOptions = [
+  "Smile",
+  "FileText",
+  "Headphones",
+  "User",
+  "Star",
+  "Heart",
+  "Camera",
+  "Coffee",
+  "Book",
+  "Code",
+  "Briefcase",
+  "Award",
+  "Check",
+  "Clock",
+  "Cloud",
+  "Download",
+  "Edit",
+  "Eye",
+  "Gift",
+  "Globe",
+  "Key",
+  "Lock",
+  "Mail",
+  "Map",
+  "Music",
+  "Phone",
+  "Search",
+  "Settings",
+  "Shield",
+  "ShoppingCart",
+  "Tag",
+  "Trash2",
+  "Upload",
+  "Zap",
+];
+
+const iconMap: Record<string, React.FC<{ className?: string }>> = {
+  Smile,
+  FileText,
+  Headphones,
+  User,
+  Star,
+  Heart,
+  Camera,
+  Coffee,
+  Book,
+  Code,
+  Briefcase,
+  Award,
+  Check,
+  Clock,
+  Cloud,
+  Download,
+  Edit,
+  Eye,
+  Gift,
+  Globe,
+  Key,
+  Lock,
+  Mail,
+  Map,
+  Music,
+  Phone,
+  Search,
+  Settings,
+  Shield,
+  ShoppingCart,
+  Tag,
+  Trash2,
+  Upload,
+  Zap,
+};
 
 export default function FactsForm() {
   const [isLoading, setIsLoading] = useState(false)
@@ -200,9 +281,26 @@ export default function FactsForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Icon Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Smile, FileText, Headphones" {...field} />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select an icon" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="bg-white">
+                              {iconOptions.map((icon) => {
+                                const LucideIcon = iconMap[icon];
+                                return (
+                                  <SelectItem key={icon} value={icon}>
+                                    <span className="flex items-center gap-2">
+                                      {LucideIcon ? <LucideIcon className="h-4 w-4" /> : null}
+                                      {icon}
+                                    </span>
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}

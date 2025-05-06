@@ -27,9 +27,9 @@ export default function Portfolio() {
 
   // Default items to show while loading
   const defaultItems = [
-    { id: 1, category: "app", image: "/placeholder.svg?height=400&width=600", title: "App 1" },
-    { id: 2, category: "web", image: "/placeholder.svg?height=400&width=600", title: "Web 3" },
-    { id: 3, category: "app", image: "/placeholder.svg?height=400&width=600", title: "App 2" },
+    { id: 1, category: "app", image: "/background.jpg?height=400&width=600", title: "App 1" },
+    { id: 2, category: "web", image: "/background.jpg?height=400&width=600", title: "Web 3" },
+    { id: 3, category: "app", image: "/background.jpg?height=400&width=600", title: "App 2" },
   ]
 
   const items = loading ? defaultItems : portfolioData.items
@@ -87,7 +87,7 @@ export default function Portfolio() {
             <div key={item.id} className="portfolio-item">
               <div className="portfolio-wrap">
                 <Image
-                  src={item.image || "/placeholder.svg"}
+                  src={item.image || "/background.jpg"}
                   alt={item.title}
                   width={600}
                   height={400}

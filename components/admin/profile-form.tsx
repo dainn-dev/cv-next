@@ -19,7 +19,14 @@ import { saveProfileClient } from "@/lib/firebase/client";
 import { useToast } from "@/hooks/use-toast";
 import { subscribeToProfileUpdates } from "@/lib/firebase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Plus, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, Trash2, Twitter, Facebook, Instagram, Linkedin, Github, Youtube, Twitch, Dribbble, Globe, Globe2, GlobeIcon } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const socialSchema = z.object({
   platform: z.string().min(2, { message: "Platform is required." }),
@@ -78,6 +85,41 @@ const profileFormSchema = z.object({
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
+
+const socialPlatforms = [
+  "Twitter",
+  "Facebook",
+  "Instagram",
+  "LinkedIn",
+  "GitHub",
+  "YouTube",
+  "TikTok",
+  "Pinterest",
+  "Reddit",
+  "Discord",
+  "Twitch",
+  "Medium",
+  "Behance",
+  "Dribbble",
+  "Other"
+];
+
+const platformIconMap: Record<string, React.FC<{ className?: string }>> = {
+  Twitter,
+  Facebook,
+  Instagram,
+  Linkedin,
+  GitHub: Github,
+  YouTube: Youtube,
+  Twitch,
+  Dribbble,
+  Behance: Globe,
+  Pinterest: Globe,
+  Reddit: Globe,
+  Discord: Globe,
+  Medium: Globe,
+  Other: Globe2,
+};
 
 export default function ProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -473,9 +515,26 @@ export default function ProfileForm() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Platform</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., Twitter" {...field} />
-                            </FormControl>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a platform" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-white shadow-lg border border-gray-200">
+                                {socialPlatforms.map((platform) => {
+                                  const Icon = platformIconMap[platform] || GlobeIcon;
+                                  return (
+                                    <SelectItem key={platform} value={platform}>
+                                      <span className="flex items-center gap-2">
+                                        {Icon ? <Icon className="h-4 w-4" /> : null}
+                                        {platform}
+                                      </span>
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}

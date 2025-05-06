@@ -73,7 +73,7 @@ export default function AboutContent() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-4" data-aos="fade-right">
           <Image
-            src={profileData.image || "/placeholder.svg?height=600&width=600"}
+            src={profileData.image || "/background.jpg?height=600&width=600"}
             alt="Profile"
             width={600}
             height={600}
