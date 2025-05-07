@@ -2,8 +2,9 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { MapPin, Mail, Phone } from "lucide-react"
+import { subscribeToProfileUpdates } from "@/lib/firebase/client"
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -18,6 +19,24 @@ export default function Contact() {
     success: false,
     message: "",
   })
+  const [profile, setProfile] = useState({
+    email: "info@example.com",
+    phone: "+1 5589 55488 55s",
+    location: "A108 Adam Street, New York, NY 535022",
+    contactIntro: "",
+  })
+
+  useEffect(() => {
+    const unsubscribe = subscribeToProfileUpdates((data) => {
+      if (data) {
+        setProfile((prev) => ({
+          ...prev,
+          ...data,
+        }))
+      }
+    })
+    return () => unsubscribe()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -26,18 +45,40 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("Contact form submitted!", formData)
     setStatus({ loading: true, error: false, success: false, message: "" })
 
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatus({
+          loading: false,
+          error: false,
+          success: true,
+          message: "Your message has been sent. Thank you!",
+        });
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      } else {
+        setStatus({
+          loading: false,
+          error: true,
+          success: false,
+          message: "Failed to send message. Please try again.",
+        });
+      }
+    } catch (error) {
       setStatus({
         loading: false,
-        error: false,
-        success: true,
-        message: "Your message has been sent. Thank you!",
-      })
-      setFormData({ name: "", email: "", subject: "", message: "" })
-    }, 1500)
+        error: true,
+        success: false,
+        message: "Failed to send message. Please try again.",
+      });
+    }
   }
 
   return (
@@ -45,11 +86,15 @@ export default function Contact() {
       <div className="container mx-auto px-4">
         <div className="section-title mb-12">
           <h2>Contact</h2>
-          <p className="text-gray-600">
-            Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint
-            consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit
-            in iste officiis commodi quidem hic quas.
-          </p>
+          {profile.contactIntro ? (
+            <p className="text-gray-600">{profile.contactIntro}</p>
+          ) : (
+            <p className="text-gray-600">
+              Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint
+              consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit
+              in iste officiis commodi quidem hic quas.
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8" data-aos="fade-in">
@@ -61,7 +106,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="text-lg font-semibold text-[#173b6c]">Location:</h4>
-                  <p className="text-gray-600">A108 Adam Street, New York, NY 535022</p>
+                  <p className="text-gray-600">{profile.location}</p>
                 </div>
               </div>
 
@@ -71,7 +116,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="text-lg font-semibold text-[#173b6c]">Email:</h4>
-                  <p className="text-gray-600">info@example.com</p>
+                  <p className="text-gray-600">{profile.email}</p>
                 </div>
               </div>
 
@@ -81,12 +126,12 @@ export default function Contact() {
                 </div>
                 <div>
                   <h4 className="text-lg font-semibold text-[#173b6c]">Call:</h4>
-                  <p className="text-gray-600">+1 5589 55488 55s</p>
+                  <p className="text-gray-600">{profile.phone}</p>
                 </div>
               </div>
 
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d12097.433213460943!2d-74.0062269!3d40.7101282!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0xb89d1fe6bc499443!2sDowntown+Conference+Center!5e0!3m2!1smk!2sbg!4v1539943755621"
+                src={`https://www.google.com/maps?q=${encodeURIComponent(profile.location || 'New York, NY')}&output=embed`}
                 className="w-full h-64 rounded-lg border-0"
                 allowFullScreen
                 loading="lazy"

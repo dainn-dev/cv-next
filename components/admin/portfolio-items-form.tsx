@@ -16,7 +16,7 @@ import { subscribeToPortfolioUpdates } from "@/lib/firebase/client"
 import { Textarea } from "@/components/ui/textarea"
 
 const portfolioItemSchema = z.object({
-  id: z.string().optional(),
+  id: z.union([z.string(), z.number()]).optional(),
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
   }),
@@ -28,10 +28,14 @@ const portfolioItemSchema = z.object({
   }),
   detailsUrl: z
     .string()
-    .url({
-      message: "Please enter a valid details URL.",
-    })
-    .optional(),
+    .url({ message: "Please enter a valid details URL." })
+    .optional()
+    .or(z.literal('')),
+  client: z.string().min(1, { message: "Client is required." }),
+  date: z.string().min(1, { message: "Date is required." }),
+  url: z.string().url({ message: "Please enter a valid project URL." }).optional().or(z.literal('')),
+  description: z.string().min(1, { message: "Description is required." }),
+  images: z.array(z.string().url({ message: "Please enter a valid image URL." })).min(1, { message: "At least one image is required." }),
 })
 
 const introSchema = z.object({
@@ -96,10 +100,19 @@ export default function PortfolioItemsForm() {
   async function onSubmit(data: PortfolioFormValues) {
     setIsLoading(true)
     try {
-      await savePortfolioItemsClient(data)
+      // Convert all ids to string before saving
+      const dataToSave = {
+        ...data,
+        items: data.items.map(item => ({
+          ...item,
+          id: item.id !== undefined ? String(item.id) : undefined,
+        })),
+      }
+      await savePortfolioItemsClient(dataToSave)
       toast({
         title: "Portfolio updated",
         description: "Your portfolio items have been updated successfully.",
+        variant: "success",
       })
     } catch (error) {
       toast({
@@ -210,7 +223,7 @@ export default function PortfolioItemsForm() {
                                 <SelectValue placeholder="Select a category" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
+                            <SelectContent className="bg-white">
                               <SelectItem value="app">App</SelectItem>
                               <SelectItem value="web">Web</SelectItem>
                               <SelectItem value="card">Card</SelectItem>
@@ -246,6 +259,75 @@ export default function PortfolioItemsForm() {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.client`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Client</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Client Name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.date`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Date</FormLabel>
+                          <FormControl>
+                            <Input placeholder="January 2023" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.url`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Project URL (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://example.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.description`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="Project description..." {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`items.${index}.images`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Images (one per line)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="https://example.com/image1.jpg\nhttps://example.com/image2.jpg"
+                              value={field.value?.join("\n") || ""}
+                              onChange={e => field.onChange(e.target.value.split("\n").filter(Boolean))}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </CardContent>
               )}
@@ -257,13 +339,20 @@ export default function PortfolioItemsForm() {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() =>
+            onClick={() => {
               append({
+                id: crypto.randomUUID(),
                 title: "",
                 category: "web",
                 imageUrl: "https://placeholder.com/600x400",
+                client: "",
+                date: "",
+                url: "",
+                description: "",
+                images: ["https://placeholder.com/600x400"],
               })
-            }
+              setExpanded(exp => exp.map(() => false).concat(true))
+            }}
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />

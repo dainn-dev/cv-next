@@ -109,6 +109,14 @@ export default function TestimonialsForm() {
     }
   }
 
+  if (isDataLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <img src="/loading.gif" alt="Loading..." className="h-12 w-12" />
+      </div>
+    );
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">

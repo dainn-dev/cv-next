@@ -4,10 +4,28 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Plus, LinkIcon } from "lucide-react"
 import { subscribeToPortfolioUpdates } from "@/lib/firebase/client"
+import { useRouter } from "next/navigation"
+
+interface PortfolioItem {
+  id: string
+  category: string
+  image: string
+  title: string
+  detailsUrl?: string
+}
+
+interface PortfolioData {
+  intro: {
+    title: string
+    description: string
+  }
+  items: PortfolioItem[]
+}
 
 export default function Portfolio() {
+  const router = useRouter()
   const [filter, setFilter] = useState("*")
-  const [portfolioData, setPortfolioData] = useState({
+  const [portfolioData, setPortfolioData] = useState<PortfolioData>({
     intro: {
       title: "Portfolio",
       description:
@@ -19,6 +37,7 @@ export default function Portfolio() {
 
   useEffect(() => {
     const unsubscribe = subscribeToPortfolioUpdates((data) => {
+      console.log('Received portfolio data:', data);
       setPortfolioData(data)
       setLoading(false)
     })
@@ -26,16 +45,20 @@ export default function Portfolio() {
   }, [])
 
   // Default items to show while loading
-  const defaultItems = [
-    { id: 1, category: "app", image: "/background.jpg?height=400&width=600", title: "App 1" },
-    { id: 2, category: "web", image: "/background.jpg?height=400&width=600", title: "Web 3" },
-    { id: 3, category: "app", image: "/background.jpg?height=400&width=600", title: "App 2" },
+  const defaultItems: PortfolioItem[] = [
+    { id: "1", category: "app", image: "/background.jpg?height=400&width=600", title: "App 1" },
+    { id: "2", category: "web", image: "/background.jpg?height=400&width=600", title: "Web 3" },
+    { id: "3", category: "app", image: "/background.jpg?height=400&width=600", title: "App 2" },
   ]
 
   const items = loading ? defaultItems : portfolioData.items
   const filteredItems = filter === "*" ? items : items.filter((item) => item.category === filter)
 
   const intro = portfolioData.intro
+
+  const handleItemClick = (itemId: string) => {
+    router.push(`/portfolio/${itemId}`)
+  }
 
   return (
     <section id="portfolio" className="py-16 bg-[#f5f8fd]">
@@ -83,8 +106,8 @@ export default function Portfolio() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-aos="fade-up" data-aos-delay="100">
-          {filteredItems.map((item) => (
-            <div key={item.id} className="portfolio-item">
+          {filteredItems.map((item, idx) => (
+            <div key={item.id ?? idx} className="portfolio-item cursor-pointer" onClick={() => handleItemClick(item.id)}>
               <div className="portfolio-wrap">
                 <Image
                   src={item.image || "/background.jpg"}
@@ -94,10 +117,10 @@ export default function Portfolio() {
                   className="w-full h-64 object-cover"
                 />
                 <div className="portfolio-links">
-                  <a href={item.image} title={item.title} className="text-white hover:text-gray-200">
+                  <a href={item.image} title={item.title} className="text-white hover:text-gray-200" onClick={(e) => e.stopPropagation()}>
                     <Plus className="h-6 w-6" />
                   </a>
-                  <a href={item.detailsUrl || "#"} title="More Details" className="text-white hover:text-gray-200">
+                  <a href={item.detailsUrl || "#"} title="More Details" className="text-white hover:text-gray-200" onClick={(e) => e.stopPropagation()}>
                     <LinkIcon className="h-6 w-6" />
                   </a>
                 </div>

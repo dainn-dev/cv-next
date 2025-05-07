@@ -81,6 +81,10 @@ const profileFormSchema = z.object({
     .string()
     .min(10, { message: "Resume introduction must be at least 10 characters." })
     .optional(),
+  contactIntro: z
+    .string()
+    .min(10, { message: "Contact introduction must be at least 10 characters." })
+    .optional(),
   socials: z.array(socialSchema).optional(),
 });
 
@@ -112,6 +116,8 @@ export default function ProfileForm() {
     image: "",
     resumeIntro:
       "Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.",
+    contactIntro:
+      "Feel free to reach out to me for any project or collaboration. I am always open to discussing new opportunities and creative ideas.",
     socials: [
       { platform: "Twitter" as SocialPlatformName, url: "https://twitter.com/" },
       { platform: "Facebook" as SocialPlatformName, url: "https://facebook.com/" },
@@ -145,6 +151,7 @@ export default function ProfileForm() {
           freelance: profile.freelance || defaultValues.freelance,
           image: profile.image || defaultValues.image,
           resumeIntro: profile.resumeIntro || defaultValues.resumeIntro,
+          contactIntro: profile.contactIntro || defaultValues.contactIntro,
           socials: profile.socials || defaultValues.socials,
         });
       }
@@ -422,6 +429,31 @@ export default function ProfileForm() {
                   <FormControl>
                     <Textarea
                       placeholder="Write an introduction for your resume section"
+                      className="min-h-[80px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Contact Intro</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="contactIntro"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Introduction</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Write an introduction for your contact section"
                       className="min-h-[80px]"
                       {...field}
                     />

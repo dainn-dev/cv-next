@@ -5,7 +5,7 @@ export default function Footer() {
         <div className="text-gray-600">
           &copy; Copyright{" "}
           <strong>
-            <span>Portfolio</span>
+            <span>Dainn</span>
           </strong>
         </div>
         <div className="text-gray-500 text-sm mt-1">Designed with Next.js and Tailwind CSS</div>

@@ -96,11 +96,12 @@ export default function Testimonials() {
           {testimonialsToShow.map((testimonial, idx) => (
             <div key={startIdx + idx} className="flex flex-col items-center">
               {/* Testimonial Card with speech bubble */}
-              <div className="relative bg-white p-8 rounded-lg shadow-md w-full text-center mb-8">
+              <div
+                className="relative bg-white p-8 rounded-lg shadow-md w-full text-center mb-8 overflow-y-hidden hover:overflow-y-auto transition-all"
+                style={{ maxHeight: 320 }}
+              >
                 <Quote className="h-8 w-8 text-[#c3e8fa] mx-auto mb-2" />
-                <p className="italic text-gray-700 text-lg font-medium leading-relaxed">
-                  {testimonial.text}
-                </p>
+                <p className="text-gray-700 mb-4">{testimonial.text}</p>
                 {/* Speech bubble pointer */}
                 <div className="absolute left-1/2 -bottom-5 -translate-x-1/2 w-0 h-0 border-l-12 border-l-transparent border-r-12 border-r-transparent border-t-12 border-t-white" style={{borderLeftWidth: 24, borderRightWidth: 24, borderTopWidth: 20}} />
               </div>
