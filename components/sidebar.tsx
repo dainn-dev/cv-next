@@ -4,10 +4,6 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import {
-  Twitter,
-  Facebook,
-  Instagram,
-  Linkedin,
   Home,
   User,
   FileText,
@@ -17,29 +13,23 @@ import {
   Menu,
 } from "lucide-react"
 import { subscribeToProfileUpdates } from "@/lib/firebase/client"
+import { SOCIAL_PLATFORMS, type SocialPlatformName } from "@/lib/constants/social-platforms"
 
-type Social = { platform: string; url: string; icon?: string };
+type Social = { platform: string; url: string; icon?: string }
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const [activeSection, setActiveSection] = useState("hero")
   const [profileData, setProfileData] = useState<{
-    name: string;
-    image: string;
-    socials: Social[];
+    name: string
+    image: string
+    socials: Social[]
   }>({
     name: "Your Name",
     image: "",
     socials: [],
   })
   const [loading, setLoading] = useState(true)
-
-  const iconMap = {
-    Twitter,
-    Facebook,
-    Instagram,
-    Linkedin,
-  }
 
   useEffect(() => {
     const unsubscribe = subscribeToProfileUpdates((profile) => {
@@ -117,7 +107,7 @@ export default function Sidebar() {
             <div className="social-links flex justify-center mt-4 space-x-2">
               {profileData.socials && profileData.socials.length > 0 ? (
                 profileData.socials.map((social: Social, idx) => {
-                  const Icon = iconMap[social.icon as keyof typeof iconMap] || iconMap[social.platform as keyof typeof iconMap] || Twitter
+                  const Icon = SOCIAL_PLATFORMS[social.platform as SocialPlatformName] || SOCIAL_PLATFORMS.Other
                   return (
                     <a
                       key={idx}
@@ -133,16 +123,16 @@ export default function Sidebar() {
               ) : (
                 <>
                   <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
-                    <Twitter className="h-4 w-4" />
+                    <SOCIAL_PLATFORMS.Twitter className="h-4 w-4" />
                   </a>
                   <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
-                    <Facebook className="h-4 w-4" />
+                    <SOCIAL_PLATFORMS.Facebook className="h-4 w-4" />
                   </a>
                   <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
-                    <Instagram className="h-4 w-4" />
+                    <SOCIAL_PLATFORMS.Instagram className="h-4 w-4" />
                   </a>
                   <a href="#" className="bg-[#212431] p-2 rounded-full hover:bg-[#149ddd] transition-colors">
-                    <Linkedin className="h-4 w-4" />
+                    <SOCIAL_PLATFORMS.LinkedIn className="h-4 w-4" />
                   </a>
                 </>
               )}

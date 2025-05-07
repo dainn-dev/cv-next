@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Smile, FileText, Headphones, Users } from "lucide-react"
+import { FACT_ICONS, type FactIconName } from "@/lib/constants/fact-icons"
 import { subscribeToFactsUpdates } from "@/lib/firebase/client"
 
 interface Fact {
@@ -89,18 +89,8 @@ export default function Facts() {
   }, [loading])
 
   const getIcon = (iconName: string) => {
-    switch (iconName.toLowerCase()) {
-      case "smile":
-        return <Smile className="h-8 w-8 text-[#149ddd]" />
-      case "filetext":
-        return <FileText className="h-8 w-8 text-[#149ddd]" />
-      case "headphones":
-        return <Headphones className="h-8 w-8 text-[#149ddd]" />
-      case "users":
-        return <Users className="h-8 w-8 text-[#149ddd]" />
-      default:
-        return <Smile className="h-8 w-8 text-[#149ddd]" />
-    }
+    const IconComponent = FACT_ICONS[iconName as FactIconName] || FACT_ICONS.Smile
+    return <IconComponent className="h-8 w-8 text-[#149ddd]" />
   }
 
   if (loading) {

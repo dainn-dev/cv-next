@@ -19,7 +19,8 @@ import { saveProfileClient } from "@/lib/firebase/client";
 import { useToast } from "@/hooks/use-toast";
 import { subscribeToProfileUpdates } from "@/lib/firebase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Plus, ChevronDown, ChevronUp, Trash2, Twitter, Facebook, Instagram, Linkedin, Github, Youtube, Twitch, Dribbble, Globe, Globe2, GlobeIcon } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { SOCIAL_PLATFORMS, SOCIAL_PLATFORM_OPTIONS, type SocialPlatformName } from "@/lib/constants/social-platforms";
 import {
   Select,
   SelectContent,
@@ -29,9 +30,8 @@ import {
 } from "@/components/ui/select";
 
 const socialSchema = z.object({
-  platform: z.string().min(2, { message: "Platform is required." }),
+  platform: z.enum(SOCIAL_PLATFORM_OPTIONS),
   url: z.string().url({ message: "Please enter a valid URL." }),
-  icon: z.string().optional(),
 });
 
 const profileFormSchema = z.object({
@@ -86,41 +86,6 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-const socialPlatforms = [
-  "Twitter",
-  "Facebook",
-  "Instagram",
-  "LinkedIn",
-  "GitHub",
-  "YouTube",
-  "TikTok",
-  "Pinterest",
-  "Reddit",
-  "Discord",
-  "Twitch",
-  "Medium",
-  "Behance",
-  "Dribbble",
-  "Other"
-];
-
-const platformIconMap: Record<string, React.FC<{ className?: string }>> = {
-  Twitter,
-  Facebook,
-  Instagram,
-  Linkedin,
-  GitHub: Github,
-  YouTube: Youtube,
-  Twitch,
-  Dribbble,
-  Behance: Globe,
-  Pinterest: Globe,
-  Reddit: Globe,
-  Discord: Globe,
-  Medium: Globe,
-  Other: Globe2,
-};
-
 export default function ProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -148,14 +113,10 @@ export default function ProfileForm() {
     resumeIntro:
       "Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.",
     socials: [
-      { platform: "Twitter", url: "https://twitter.com/", icon: "Twitter" },
-      { platform: "Facebook", url: "https://facebook.com/", icon: "Facebook" },
-      {
-        platform: "Instagram",
-        url: "https://instagram.com/",
-        icon: "Instagram",
-      },
-      { platform: "Linkedin", url: "https://linkedin.com/", icon: "Linkedin" },
+      { platform: "Twitter" as SocialPlatformName, url: "https://twitter.com/" },
+      { platform: "Facebook" as SocialPlatformName, url: "https://facebook.com/" },
+      { platform: "Instagram" as SocialPlatformName, url: "https://instagram.com/" },
+      { platform: "LinkedIn" as SocialPlatformName, url: "https://linkedin.com/" },
     ],
   };
 
@@ -522,12 +483,12 @@ export default function ProfileForm() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="bg-white shadow-lg border border-gray-200">
-                                {socialPlatforms.map((platform) => {
-                                  const Icon = platformIconMap[platform] || GlobeIcon;
+                                {SOCIAL_PLATFORM_OPTIONS.map((platform) => {
+                                  const Icon = SOCIAL_PLATFORMS[platform] || SOCIAL_PLATFORMS.Other;
                                   return (
                                     <SelectItem key={platform} value={platform}>
                                       <span className="flex items-center gap-2">
-                                        {Icon ? <Icon className="h-4 w-4" /> : null}
+                                        <Icon className="h-4 w-4" />
                                         {platform}
                                       </span>
                                     </SelectItem>
@@ -555,22 +516,6 @@ export default function ProfileForm() {
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={form.control}
-                        name={`socials.${index}.icon`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Icon (optional)</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="e.g., Twitter, Facebook, Instagram, Linkedin"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                     </div>
                   </CardContent>
                 )}
@@ -580,7 +525,7 @@ export default function ProfileForm() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => appendSocial({ platform: "", url: "", icon: "" })}
+              onClick={() => appendSocial({ platform: "Twitter" as SocialPlatformName, url: "" })}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />

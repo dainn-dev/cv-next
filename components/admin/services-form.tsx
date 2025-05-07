@@ -12,18 +12,18 @@ import { Trash2, Plus, Loader2, ChevronDown, ChevronUp, Smile, FileText, Headpho
 import { Textarea } from "@/components/ui/textarea"
 import { saveServicesClient, subscribeToServicesUpdates } from "@/lib/firebase/client"
 import { useToast } from "@/hooks/use-toast"
+import { SERVICE_ICONS, SERVICE_ICON_OPTIONS, type ServiceIconName } from "@/lib/constants/service-icons"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import * as lucideIcons from "lucide-react";
+} from "@/components/ui/select"
 
 const serviceSchema = z.object({
   id: z.string().optional(),
-  icon: z.string().min(1, { message: "Icon name is required" }),
+  icon: z.string().min(1, { message: "Icon name is required" }) as z.ZodType<ServiceIconName>,
   title: z.string().min(2, { message: "Title is required" }),
   description: z.string().min(5, { message: "Description is required" }),
 })
@@ -39,80 +39,6 @@ const servicesFormSchema = z.object({
 })
 
 type ServicesFormValues = z.infer<typeof servicesFormSchema>
-
-const iconOptions = [
-  "Smile",
-  "FileText",
-  "Headphones",
-  "User",
-  "Star",
-  "Heart",
-  "Camera",
-  "Coffee",
-  "Book",
-  "Code",
-  "Briefcase",
-  "Award",
-  "Check",
-  "Clock",
-  "Cloud",
-  "Download",
-  "Edit",
-  "Eye",
-  "Gift",
-  "Globe",
-  "Key",
-  "Lock",
-  "Mail",
-  "Map",
-  "Music",
-  "Phone",
-  "Search",
-  "Settings",
-  "Shield",
-  "ShoppingCart",
-  "Tag",
-  "Trash2",
-  "Upload",
-  "Zap",
-];
-
-const iconMap: Record<string, React.FC<{ className?: string }>> = {
-  Smile,
-  FileText,
-  Headphones,
-  User,
-  Star,
-  Heart,
-  Camera,
-  Coffee,
-  Book,
-  Code,
-  Briefcase,
-  Award,
-  Check,
-  Clock,
-  Cloud,
-  Download,
-  Edit,
-  Eye,
-  Gift,
-  Globe,
-  Key,
-  Lock,
-  Mail,
-  Map,
-  Music,
-  Phone,
-  Search,
-  Settings,
-  Shield,
-  ShoppingCart,
-  Tag,
-  Trash2,
-  Upload,
-  Zap,
-};
 
 export default function ServicesForm() {
   const [isLoading, setIsLoading] = useState(false)
@@ -270,16 +196,16 @@ export default function ServicesForm() {
                               </FormControl>
                               <SelectContent className="bg-white">
                                 <div className="px-2 py-1 text-xs text-gray-500">General</div>
-                                {iconOptions.map((icon) => {
-                                  const LucideIcon = iconMap[icon];
+                                {SERVICE_ICON_OPTIONS.map((icon) => {
+                                  const IconComponent = SERVICE_ICONS[icon]
                                   return (
                                     <SelectItem key={icon} value={icon}>
                                       <span className="flex items-center gap-2">
-                                        {LucideIcon ? <LucideIcon className="h-4 w-4" /> : null}
+                                        <IconComponent className="h-4 w-4" />
                                         {icon}
                                       </span>
                                     </SelectItem>
-                                  );
+                                  )
                                 })}
                               </SelectContent>
                             </Select>
@@ -323,7 +249,7 @@ export default function ServicesForm() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => append({ icon: "", title: "", description: "" })}
+                onClick={() => append({ icon: "Briefcase" as ServiceIconName, title: "", description: "" })}
                 className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />

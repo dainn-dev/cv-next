@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { subscribeToServicesUpdates } from "@/lib/firebase/client"
-import { Briefcase, ClipboardList, BarChart, TelescopeIcon as Binoculars, Sun, Calendar } from "lucide-react"
+import { SERVICE_ICONS, type ServiceIconName } from "@/lib/constants/service-icons"
 
 interface Service {
   id?: string
@@ -17,15 +17,6 @@ interface ServicesData {
     description: string
   }
   services: Service[]
-}
-
-const iconMap: { [key: string]: any } = {
-  Briefcase: Briefcase,
-  ClipboardList: ClipboardList,
-  BarChart: BarChart,
-  Binoculars: Binoculars,
-  Sun: Sun,
-  Calendar: Calendar,
 }
 
 export default function Services() {
@@ -85,7 +76,7 @@ export default function Services() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.services.map((service, index) => {
-            const Icon = iconMap[service.icon] || Briefcase
+            const Icon = SERVICE_ICONS[service.icon as ServiceIconName] || SERVICE_ICONS.Briefcase
             return (
               <div key={service.id || index} className="icon-box bg-white p-6 rounded-lg shadow-sm" data-aos="fade-up" data-aos-delay={index * 100}>
                 <div className="flex gap-4">
