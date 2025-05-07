@@ -23,7 +23,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="flex flex-row overflow-x-auto whitespace-nowrap gap-2 md:grid md:w-full md:grid-cols-9 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             <TabsTrigger value="profile">General</TabsTrigger>
             <TabsTrigger value="facts">Facts</TabsTrigger>
             <TabsTrigger value="education">Education</TabsTrigger>
