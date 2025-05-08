@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 interface PortfolioItem {
   id: string
   category: string
-  image: string
+  imageUrl: string
   title: string
   detailsUrl?: string
 }
@@ -46,9 +46,9 @@ export default function Portfolio() {
 
   // Default items to show while loading
   const defaultItems: PortfolioItem[] = [
-    { id: "1", category: "app", image: "/background.jpg?height=400&width=600", title: "App 1" },
-    { id: "2", category: "web", image: "/background.jpg?height=400&width=600", title: "Web 3" },
-    { id: "3", category: "app", image: "/background.jpg?height=400&width=600", title: "App 2" },
+    { id: "1", category: "app", imageUrl: "/background.jpg?height=400&width=600", title: "App 1" },
+    { id: "2", category: "web", imageUrl: "/background.jpg?height=400&width=600", title: "Web 3" },
+    { id: "3", category: "app", imageUrl: "/background.jpg?height=400&width=600", title: "App 2" },
   ]
 
   const items = loading ? defaultItems : portfolioData.items
@@ -110,14 +110,14 @@ export default function Portfolio() {
             <div key={item.id ?? idx} className="portfolio-item cursor-pointer" onClick={() => handleItemClick(item.id)}>
               <div className="portfolio-wrap">
                 <Image
-                  src={item.image || "/background.jpg"}
+                  src={item.imageUrl || "/background.jpg"}
                   alt={item.title}
                   width={600}
                   height={400}
                   className="w-full h-64 object-cover"
                 />
                 <div className="portfolio-links">
-                  <a href={item.image} title={item.title} className="text-white hover:text-gray-200" onClick={(e) => e.stopPropagation()}>
+                  <a href={item.imageUrl} title={item.title} className="text-white hover:text-gray-200" onClick={(e) => e.stopPropagation()}>
                     <Plus className="h-6 w-6" />
                   </a>
                   <a href={item.detailsUrl || "#"} title="More Details" className="text-white hover:text-gray-200" onClick={(e) => e.stopPropagation()}>

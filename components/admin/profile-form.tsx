@@ -344,7 +344,7 @@ export default function ProfileForm() {
                     <FormLabel>Profile Image URL</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="https://example.com/your-image.jpg"
+                        placeholder="Upload to https://imgur.com/ and paste the direct image link here"
                         {...field}
                       />
                     </FormControl>
