@@ -191,9 +191,10 @@ export default function PortfolioDetails({ params }: { params: Promise<{ id: str
 
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-bold text-[#173b6c] mb-4">{item.title}</h2>
-                <div className="text-gray-600">
-                  <p>{item.description}</p>
-                </div>
+                <div 
+                  className="text-gray-600 prose prose-sm max-w-none" 
+                  dangerouslySetInnerHTML={{ __html: item.description || '' }}
+                />
               </div>
             </div>
           </div>

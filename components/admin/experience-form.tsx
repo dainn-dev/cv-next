@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { subscribeToExperienceUpdates, saveExperienceClient } from "@/lib/firebase/client"
 import { Plus, ChevronDown, ChevronUp, Trash2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { RichTextEditor } from "@/components/ui/rich-text-editor"
 
 const experienceSchema = z.object({
   id: z.string().optional(),
@@ -159,7 +160,13 @@ export default function ExperienceForm() {
                 <FormField control={form.control} name={`experience.${index}.description`} render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-gray-600">Description</FormLabel>
-                    <FormControl><Textarea {...field} /></FormControl>
+                    <FormControl>
+                      <RichTextEditor
+                        value={field.value}
+                        onChange={field.onChange}
+                        className="min-h-[150px]"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />

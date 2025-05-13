@@ -12,6 +12,7 @@ import { Trash2, Plus, Loader2, ChevronDown, ChevronUp } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { saveCertificatesClient, subscribeToCertificatesUpdates } from "@/lib/firebase/client"
 import { useToast } from "@/hooks/use-toast"
+import { RichTextEditor } from "@/components/ui/rich-text-editor"
 
 const certificateSchema = z.object({
   id: z.string().optional(),
@@ -169,7 +170,11 @@ export default function CertificatesForm() {
                           <FormItem>
                             <FormLabel>Description</FormLabel>
                             <FormControl>
-                              <Textarea placeholder="Certificate description (optional)" {...field} />
+                              <RichTextEditor
+                                value={field.value || ''}
+                                onChange={field.onChange}
+                                className="min-h-[150px]"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

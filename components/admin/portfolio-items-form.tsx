@@ -14,6 +14,7 @@ import { savePortfolioItemsClient } from "@/lib/firebase/client"
 import { useToast } from "@/hooks/use-toast"
 import { subscribeToPortfolioUpdates } from "@/lib/firebase/client"
 import { Textarea } from "@/components/ui/textarea"
+import { RichTextEditor } from "@/components/ui/rich-text-editor"
 
 const portfolioItemSchema = z.object({
   id: z.union([z.string(), z.number()]).optional(),
@@ -305,7 +306,11 @@ export default function PortfolioItemsForm() {
                         <FormItem>
                           <FormLabel>Description</FormLabel>
                           <FormControl>
-                            <Textarea placeholder="Project description..." {...field} />
+                            <RichTextEditor
+                              value={field.value}
+                              onChange={field.onChange}
+                              className="min-h-[150px]"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

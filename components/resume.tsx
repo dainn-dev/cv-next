@@ -85,11 +85,10 @@ export default function Resume() {
                 <h5 className="text-[#149ddd] font-semibold mb-2">{exp.company}</h5>
                 <p className="text-sm text-gray-500 mb-1">{exp.startYear} - {exp.endYear}</p>
                 <p className="italic mb-2">{exp.location}</p>
-                <ul className="list-disc list-inside text-gray-600 space-y-1">
-                  {exp.description?.split('\n').map((item: string, i: number) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
+                <div 
+                  className="text-gray-600 prose prose-sm max-w-none" 
+                  dangerouslySetInnerHTML={{ __html: exp.description || '' }}
+                />
               </div>
             ))}
           </div>
@@ -123,7 +122,10 @@ export default function Resume() {
                   <h4 className="text-lg font-bold text-[#173b6c]">{cert.title}</h4>
                   <h5 className="text-[#149ddd] font-semibold mb-2">{cert.issuer}</h5>
                   <p className="italic mb-2">{cert.date}</p>
-                  <p className="text-gray-600">{cert.description}</p>
+                  <div 
+                    className="text-gray-600 prose prose-sm max-w-none" 
+                    dangerouslySetInnerHTML={{ __html: cert.description || '' }}
+                  />
                 </div>
               ))
             )}
